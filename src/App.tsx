@@ -159,7 +159,12 @@ function useSketchHoverDraw(duration = 2800, stagger = 90) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transition: `opacity .55s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{
+      opacity: v ? 1 : 0,
+      transform: v ? "none" : "translateY(24px)",
+      transition: `opacity .9s cubic-bezier(0.16,1,0.3,1) ${d}s, transform .9s cubic-bezier(0.16,1,0.3,1) ${d}s`,
+      ...style,
+    }}>
       {children}
     </div>
   );
@@ -416,7 +421,7 @@ function PageTransition() {
         setCurrentPage(page);
         window.scrollTo(0, 0);
         requestAnimationFrame(() => setVisible(true));
-      }, 420);
+      }, 520);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -472,12 +477,17 @@ function PageTransition() {
       setCurrentPage(p);
       window.scrollTo(0, 0);
       requestAnimationFrame(() => setVisible(true));
-    }, 420);
+    }, 520);
   };
 
   return (
     <BackgroundMusicProvider>
-      <div style={{ opacity: visible ? 1 : 0, transition: "opacity 0.42s ease", minHeight: "100vh" }}>
+      <div style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(14px)",
+        transition: "opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)",
+        minHeight: "100vh",
+      }}>
         {currentPage === "home"    && <HomePage    onNavigate={navigate} />}
         {currentPage === "contact" && <ContactPage onNavigate={navigate} />}
         {currentPage === "about"   && <AboutPage   onNavigate={navigate} />}

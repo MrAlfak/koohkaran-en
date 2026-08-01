@@ -534,9 +534,9 @@
   transition-delay: var(--sketch-delay-out, 0ms);
 }
 
-/* smoother scroll — pause heavy transitions while scrolling */
-html.is-scrolling .faq-sketch-wrap path,
-html.is-scrolling .scroll-fade {
+/* smoother scroll — pause the heaviest (SVG stroke-draw) transition while scrolling; */
+/* .scroll-fade reveals stay live during scroll now that image payloads are lightweight */
+html.is-scrolling .faq-sketch-wrap path {
   transition-duration: 0ms !important;
   transition-delay: 0ms !important;
 }
