@@ -19,7 +19,7 @@ function useFade(threshold = 0.08) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
       {children}
     </div>
   );
@@ -115,7 +115,7 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
       <section style={{ padding: "0 clamp(24px,5vw,64px)" }}>
         <Fade>
           <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={img(product.heroImage)} alt={product.name} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
+            <img src={img(product.heroImage)} alt={product.name} decoding="async" style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
           </div>
         </Fade>
       </section>
@@ -142,7 +142,9 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
       <section style={{ padding: "clamp(40px,5vw,72px) clamp(24px,5vw,64px) clamp(32px,4vw,56px)", textAlign: "center" }}>
         <Fade>
           <h2 style={{ fontSize: "clamp(24px,2.8vw,40px)", fontWeight: 300, margin: "0 0 14px", color: "#1c1917" }}>Product details</h2>
-          <p style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a8a29e", margin: 0 }}>{product.code}&nbsp;&nbsp;·&nbsp;&nbsp;{product.name}</p>
+          {product.description && (
+            <p style={{ fontSize: 15, lineHeight: 1.8, color: "#57534e", maxWidth: 720, margin: "0 auto" }}>{product.description}</p>
+          )}
         </Fade>
       </section>
 
@@ -150,7 +152,7 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(60px,8vw,110px)" }}>
         <Fade>
           <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={img(product.detailImage)} alt={`${product.name} detail`} style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", display: "block" }} />
+            <img src={img(product.detailImage)} alt={`${product.name} detail`} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", display: "block" }} />
           </div>
         </Fade>
       </section>
@@ -167,7 +169,7 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
               <Fade key={p.name} d={i * 0.08}>
                 <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                   <div style={{ overflow: "hidden", marginBottom: 16, aspectRatio: "4/3" }}>
-                    <img src={img(p.image)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(p.image)} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>

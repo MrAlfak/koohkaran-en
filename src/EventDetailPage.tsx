@@ -19,7 +19,7 @@ function useFade(threshold = 0.08) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
       {children}
     </div>
   );
@@ -108,7 +108,7 @@ export default function EventDetailPage({ onNavigate, eventId }: { onNavigate: (
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(48px,6vw,80px)" }}>
         <Fade>
           <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={img(event.heroImage)} alt={event.title} style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }} />
+            <img src={img(event.heroImage)} alt={event.title} decoding="async" style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }} />
           </div>
         </Fade>
       </section>
@@ -139,7 +139,7 @@ export default function EventDetailPage({ onNavigate, eventId }: { onNavigate: (
               <Fade key={e.id} d={i * 0.08}>
                 <div style={{ cursor: "pointer" }} onClick={() => onNavigate("event", e.id)}>
                   <div style={{ overflow: "hidden", marginBottom: 16, aspectRatio: "4/3" }}>
-                    <img src={img(e.image)} alt={e.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(e.image)} alt={e.title} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={el => (el.currentTarget.style.transform = "scale(1.05)")}
                       onMouseOut={el => (el.currentTarget.style.transform = "scale(1)")} />
                   </div>

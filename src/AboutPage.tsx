@@ -19,7 +19,7 @@ function useFade(threshold = 0.08) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
       {children}
     </div>
   );
@@ -124,7 +124,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
 
         {/* Right image — interior with stone wall */}
         <div className="about-hero-img" style={{ position: "relative", overflow: "hidden" }}>
-          <img src={img("images/about_page_img_0.jpg")} alt="luxury interior" style={{
+          <img src={img("images/about_page_img_0.jpg")} alt="luxury interior" decoding="async" style={{
             width: "100%", height: "100%", objectFit: "cover", objectPosition: "center",
             transition: "transform 8s ease",
           }} />
@@ -150,7 +150,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
           {/* Left image — stone texture */}
           <Fade d={0.1}>
             <div style={{ overflow: "hidden" }}>
-              <img src={img("images/about_page_img_1.jpg")} alt="stone texture" style={{
+              <img src={img("images/about_page_img_1.jpg")} alt="stone texture" loading="lazy" decoding="async" style={{
                 width: "100%", height: "clamp(400px,55vw,680px)", objectFit: "cover", display: "block",
                 transition: "transform .7s ease",
               }}
@@ -185,7 +185,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
             {/* Tall vertical image */}
             <Fade d={0.1}>
               <div style={{ overflow: "hidden" }}>
-                <img src={img("images/about_page_img_2.jpg")} alt="stone building" style={{
+                <img src={img("images/about_page_img_2.jpg")} alt="stone building" loading="lazy" decoding="async" style={{
                   width: "100%", aspectRatio: "2/3", objectFit: "cover", display: "block",
                   transition: "transform .7s ease",
                 }}
@@ -197,7 +197,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
             {/* Wide landscape image */}
             <Fade d={0.2}>
               <div style={{ overflow: "hidden" }}>
-                <img src={img("images/about_page_img_3.jpg")} alt="stone facade" style={{
+                <img src={img("images/about_page_img_3.jpg")} alt="stone facade" loading="lazy" decoding="async" style={{
                   width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block",
                   transition: "transform .7s ease",
                 }}
@@ -229,7 +229,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
 
       {/* ══ FULL-WIDTH IMAGE ══ */}
       <section style={{ height: "clamp(360px,48vw,620px)", overflow: "hidden" }}>
-        <img src={img("images/about_page_img_4.jpg")} alt="luxury interior stone" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", display: "block" }} />
+        <img src={img("images/about_page_img_4.jpg")} alt="luxury interior stone" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 40%", display: "block" }} />
       </section>
 
       {/* ══ FOOTER ══ */}

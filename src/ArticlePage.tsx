@@ -18,7 +18,7 @@ function useFade(threshold = 0.08) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
       {children}
     </div>
   );
@@ -115,7 +115,7 @@ export default function ArticlePage({ onNavigate }: { onNavigate: (p: Page) => v
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(48px,6vw,80px)" }}>
         <Fade>
           <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={aimg(3)} alt="The beauty of restraint" style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }} />
+            <img src={aimg(3)} alt="The beauty of restraint" decoding="async" style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", display: "block" }} />
           </div>
         </Fade>
       </section>
@@ -140,8 +140,8 @@ export default function ArticlePage({ onNavigate }: { onNavigate: (p: Page) => v
       {/* ══ IMAGE PAIR ══ */}
       <section style={{ padding: "clamp(48px,6vw,80px) clamp(24px,5vw,64px)" }}>
         <div className="article-pair" style={{ maxWidth: 1240, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(16px,2vw,28px)" }}>
-          <Fade><div style={{ overflow: "hidden" }}><img src={aimg(0)} alt="" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
-          <Fade d={0.1}><div style={{ overflow: "hidden" }}><img src={aimg(1)} alt="" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
+          <Fade><div style={{ overflow: "hidden" }}><img src={aimg(0)} alt="" loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
+          <Fade d={0.1}><div style={{ overflow: "hidden" }}><img src={aimg(1)} alt="" loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
         </div>
       </section>
 
@@ -157,7 +157,7 @@ export default function ArticlePage({ onNavigate }: { onNavigate: (p: Page) => v
       {/* ══ FULL-WIDTH IMAGE ══ */}
       <section style={{ height: "clamp(360px,46vw,600px)", overflow: "hidden", margin: "clamp(40px,5vw,72px) 0" }}>
         <Fade style={{ height: "100%" }}>
-          <img src={aimg(4)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={aimg(4)} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </Fade>
       </section>
 
@@ -173,8 +173,8 @@ export default function ArticlePage({ onNavigate }: { onNavigate: (p: Page) => v
       {/* ══ IMAGE PAIR 2 ══ */}
       <section style={{ padding: "clamp(48px,6vw,80px) clamp(24px,5vw,64px)" }}>
         <div className="article-pair" style={{ maxWidth: 1240, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(16px,2vw,28px)" }}>
-          <Fade><div style={{ overflow: "hidden" }}><img src={aimg(5)} alt="" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
-          <Fade d={0.1}><div style={{ overflow: "hidden" }}><img src={aimg(6)} alt="" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
+          <Fade><div style={{ overflow: "hidden" }}><img src={aimg(5)} alt="" loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
+          <Fade d={0.1}><div style={{ overflow: "hidden" }}><img src={aimg(6)} alt="" loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", display: "block" }} /></div></Fade>
         </div>
       </section>
 

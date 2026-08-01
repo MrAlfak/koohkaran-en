@@ -12,7 +12,7 @@ import SocialFab from "./components/SocialFab";
 import { BackgroundMusicProvider } from "./components/BackgroundMusicProvider";
 import NavHeaderActions from "./components/NavHeaderActions";
 import { updatePageSeo, SITE_NAME } from "./seo";
-import { getProduct } from "./products";
+import { getProduct, PRODUCTS as ALL_PRODUCTS, PRODUCT_CATEGORIES } from "./products";
 import { getEvent } from "./events";
 
 /* ─── fade-in hook ─── */
@@ -165,21 +165,126 @@ function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: 
   );
 }
 
-/* ─── data ─── */
-const COLLECTIONS = [
-  { name: "Granite",       count: 16, img: "/images/granite.jpg" },
-  { name: "Marble",        count: 47, img: "/images/marble.jpg" },
-  { name: "Onyx",          count:  9, img: "/images/onyx.jpg" },
-  { name: "Travertine",    count: 23, img: "/images/travertine.jpg" },
-  { name: "Semi Precious", count:  2, img: "/images/semiprecious.jpg" },
-  { name: "Limestone",     count:  3, img: "/images/limestone.jpg" },
+/* ─── smooth crossfade background slider (CTA section) ─── */
+const CTA_SLIDER_IMAGES = [
+  "images/koohkran-slider.webp",
+  "images/koohkran-slider2.webp",
+  "images/koohkran-slider3.webp",
+  "images/koohkran-slider4.webp",
+  "images/koohkran-slider5.webp",
 ];
 
-const PRODUCTS = [
-  { name: "Algae cotton",        sub: "MARBLE  ·  320*175", img: "/images/product1.jpg" },
-  { name: "3D black",            sub: "ONYX  ·  270*150",   img: "/images/product2.jpg" },
-  { name: "Lineal White Natanz", sub: "GRANITE  ·  300*135",img: "/images/product3.jpg" },
-];
+function CtaSlider({ images, interval = 5500 }: { images: string[]; interval?: number }) {
+  const [active, setActive] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartX = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reduceMotion = useRef(false);
+
+  useEffect(() => {
+    reduceMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
+  const startAutoplay = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (reduceMotion.current) return;
+    timerRef.current = setInterval(() => setActive(i => (i + 1) % images.length), interval);
+  };
+
+  useEffect(() => {
+    startAutoplay();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [images.length, interval]);
+
+  const goTo = (i: number) => {
+    setActive(((i % images.length) + images.length) % images.length);
+    startAutoplay();
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragStartX.current = e.clientX;
+    setDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const endDrag = (e: React.PointerEvent) => {
+    setDragging(false);
+    if (dragStartX.current === null) return;
+    const delta = e.clientX - dragStartX.current;
+    dragStartX.current = null;
+    const THRESHOLD = 40;
+    if (delta < -THRESHOLD) goTo(active + 1);
+    else if (delta > THRESHOLD) goTo(active - 1);
+  };
+
+  return (
+    <>
+      <div
+        onPointerDown={onPointerDown}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        style={{ position: "absolute", inset: 0, cursor: dragging ? "grabbing" : "grab", touchAction: "pan-y" }}
+      >
+        {images.map((src, i) => (
+          <img key={src} src={img(src)} alt="" loading="lazy" decoding="async" draggable={false} style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", objectPosition: "center 55%",
+            opacity: i === active ? 1 : 0,
+            transition: "opacity 1.8s ease",
+            willChange: "opacity",
+            pointerEvents: "none",
+          }} />
+        ))}
+      </div>
+      <div style={{
+        position: "absolute", left: "50%", bottom: "clamp(18px,2.4vw,28px)", transform: "translateX(-50%)",
+        display: "flex", gap: 10, zIndex: 2,
+      }}>
+        {images.map((_, i) => (
+          <button key={i} onClick={() => goTo(i)} aria-label={`Go to slide ${i + 1}`} style={{
+            width: 7, height: 7, borderRadius: "50%", border: "none", padding: 0, cursor: "pointer",
+            background: "#fff",
+            opacity: i === active ? 0.9 : 0.38,
+            transform: i === active ? "scale(1.35)" : "scale(1)",
+            transition: "opacity .4s ease, transform .4s ease",
+          }} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ─── data ─── */
+// hand-picked cover product per category — some catalog entries still point at
+// placeholder image paths that were never uploaded, so we can't just take items[0]
+const CATEGORY_COVER_PRODUCT_ID: Partial<Record<string, number>> = {
+  Granite: 3,   // Native Black Super Rock
+  Marble: 1,    // Persian Bianco
+  Travertine: 12, // Red Travertine
+  Quartzite: 5, // Black Horse Rock
+  "Semi Precious": 18, // Royal Black Wood
+};
+// fallback cover photo for categories with no product (or no working photo) yet
+const CATEGORY_FALLBACK_IMG: Record<string, string> = {
+  Onyx: "images/onyx.jpg",
+  Limestone: "images/limestone.jpg",
+  Basalt: "images/granite.jpg", // both Basalt products still lack an uploaded photo
+};
+
+const COLLECTIONS = PRODUCT_CATEGORIES.map(cat => {
+  const items = ALL_PRODUCTS.filter(p => p.cat === cat);
+  const coverId = CATEGORY_COVER_PRODUCT_ID[cat];
+  const cover = items.find(p => p.id === coverId);
+  return {
+    name: cat as string,
+    count: items.length,
+    img: cover?.image ?? CATEGORY_FALLBACK_IMG[cat] ?? items[0]?.image ?? "images/granite.jpg",
+  };
+});
+
+const FEATURED_PRODUCT_IDS = [20, 16, 26];
+const FEATURED_PRODUCTS = FEATURED_PRODUCT_IDS
+  .map(id => ALL_PRODUCTS.find(p => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const STATS = [
   { val: "10+",  label: "Years of Crafted Experience" },
@@ -261,14 +366,60 @@ function ArrowLink({ children, href = "#", light = false, onClick }: { children:
 /* ════════════════ ROUTER ════════════════ */
 type Page = "home" | "contact" | "about" | "journal" | "article" | "products" | "product" | "events" | "event";
 
-function PageTransition({ page }: { page: Page }) {
+/* URL <-> page mapping, so the address bar reflects navigation */
+function pathFor(page: Page, id?: number): string {
+  if (page === "product") return `/products/${id ?? 0}`;
+  if (page === "event") return `/events/${id ?? 0}`;
+  const PATHS: Record<Exclude<Page, "product" | "event">, string> = {
+    home: "/",
+    contact: "/contact",
+    about: "/about",
+    journal: "/journal",
+    article: "/journal/article",
+    products: "/products",
+    events: "/events",
+  };
+  return PATHS[page];
+}
+
+function parseLocation(pathname: string): { page: Page; id: number } {
+  const segs = pathname.split("/").filter(Boolean);
+  if (segs.length === 0) return { page: "home", id: 0 };
+  if (segs[0] === "contact") return { page: "contact", id: 0 };
+  if (segs[0] === "about") return { page: "about", id: 0 };
+  if (segs[0] === "journal") return { page: segs[1] === "article" ? "article" : "journal", id: 0 };
+  if (segs[0] === "products") return segs[1] ? { page: "product", id: Number(segs[1]) || 0 } : { page: "products", id: 0 };
+  if (segs[0] === "events") return segs[1] ? { page: "event", id: Number(segs[1]) || 0 } : { page: "events", id: 0 };
+  return { page: "home", id: 0 };
+}
+
+function PageTransition() {
+  const initial = parseLocation(window.location.pathname);
   const [visible, setVisible] = useState(false);
-  const [currentPage, setCurrentPage] = useState(page);
-  const [productId, setProductId] = useState(0);
-  const [eventId, setEventId] = useState(0);
+  const [currentPage, setCurrentPage] = useState<Page>(initial.page);
+  const [productId, setProductId] = useState(initial.page === "product" ? initial.id : 0);
+  const [eventId, setEventId] = useState(initial.page === "event" ? initial.id : 0);
+  const [productCategory, setProductCategory] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  // browser back/forward
+  useEffect(() => {
+    const onPopState = () => {
+      const { page, id } = parseLocation(window.location.pathname);
+      if (page === "product") setProductId(id);
+      if (page === "event") setEventId(id);
+      setVisible(false);
+      setTimeout(() => {
+        setCurrentPage(page);
+        window.scrollTo(0, 0);
+        requestAnimationFrame(() => setVisible(true));
+      }, 420);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
@@ -306,12 +457,16 @@ function PageTransition({ page }: { page: Page }) {
     updatePageSeo(currentPage);
   }, [currentPage, productId, eventId]);
 
-  const navigate = (p: Page, id?: number) => {
+  const navigate = (p: Page, id?: number, category?: string) => {
     if (id !== undefined) {
       if (p === "product") setProductId(id);
       if (p === "event") setEventId(id);
     }
-    if (p === currentPage && id === undefined) return;
+    if (p === "products") setProductCategory(category);
+    if (p === currentPage && id === undefined && category === undefined) return;
+    const navId = id !== undefined ? id : p === "product" ? productId : p === "event" ? eventId : undefined;
+    const url = pathFor(p, navId);
+    if (window.location.pathname !== url) window.history.pushState({}, "", url);
     setVisible(false);
     setTimeout(() => {
       setCurrentPage(p);
@@ -328,7 +483,7 @@ function PageTransition({ page }: { page: Page }) {
         {currentPage === "about"   && <AboutPage   onNavigate={navigate} />}
         {currentPage === "journal" && <JournalPage onNavigate={navigate} />}
         {currentPage === "article" && <ArticlePage onNavigate={navigate} />}
-        {currentPage === "products" && <ProductsPage onNavigate={navigate} />}
+        {currentPage === "products" && <ProductsPage onNavigate={navigate} initialCategory={productCategory} />}
         {currentPage === "product" && <ProductDetailPage onNavigate={navigate} productId={productId} />}
         {currentPage === "events" && <EventsPage onNavigate={navigate} />}
         {currentPage === "event" && <EventDetailPage onNavigate={navigate} eventId={eventId} />}
@@ -339,7 +494,7 @@ function PageTransition({ page }: { page: Page }) {
 }
 
 export default function App() {
-  return <PageTransition page="home" />;
+  return <PageTransition />;
 }
 
 /* ════════════════ HOME PAGE ════════════════ */
@@ -353,7 +508,7 @@ const PLX_CFG = [
   { y: +0.30, x: -0.07 },  // 3  کوه ۲ – بالا می‌ره + به چپ
 ];
 
-function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
+function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?: string) => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [openTab, setOpenTab] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -548,7 +703,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           </Fade>
           <Fade d={0.15}>
             <div style={{ overflow: "hidden" }}>
-              <img src={img("images/about_stone.jpg")} alt="stone slabs" className="who-img" style={{ width: "100%", height: "clamp(280px,35vw,460px)", objectFit: "cover", display: "block", transition: "transform .7s" }}
+              <img src={img("images/about_stone.jpg")} alt="stone slabs" className="who-img" loading="lazy" decoding="async" style={{ width: "100%", height: "clamp(280px,35vw,460px)", objectFit: "cover", display: "block", transition: "transform .7s" }}
                 onMouseOver={e => (e.currentTarget.style.transform = "scale(1.03)")}
                 onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
             </div>
@@ -585,9 +740,9 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
           <div className="collections-grid">
             {COLLECTIONS.map((c, i) => (
               <Fade key={c.name} d={i * 0.06}>
-                <div style={{ cursor: "pointer" }}>
+                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("products", undefined, c.name)}>
                   <div style={{ overflow: "hidden", aspectRatio: "16/9" }}>
-                    <img src={img(c.img)} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(c.img)} alt={c.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>
@@ -623,7 +778,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", marginBottom: 8 }}>SLAB MARKET</p>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
               <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 300, margin: 0 }}>Selected Product</h2>
-              <ArrowLink href="#">All products</ArrowLink>
+              <ArrowLink href="#" onClick={() => onNavigate("products")}>All products</ArrowLink>
             </div>
             {/* tabs */}
             <div className="tabs-row" style={{ display: "flex", gap: 32, marginBottom: 36, borderBottom: "1px solid #f0ede8", flexWrap: "wrap" }}>
@@ -638,17 +793,17 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
             </div>
           </Fade>
           <div className="products-grid">
-            {PRODUCTS.map((p, i) => (
-              <Fade key={p.name} d={i * 0.1}>
-                <div style={{ cursor: "pointer" }}>
+            {FEATURED_PRODUCTS.map((p, i) => (
+              <Fade key={p.id} d={i * 0.1}>
+                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                   <div style={{ overflow: "hidden", aspectRatio: "4/5" }}>
-                    <img src={img(p.img)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(p.image)} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.04)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>
                   <div style={{ paddingTop: 14 }}>
                     <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 5px" }}>{p.name}</p>
-                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.sub}</p>
+                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.cat.toUpperCase()}&nbsp;&nbsp;·&nbsp;&nbsp;{p.size}</p>
                   </div>
                 </div>
               </Fade>
@@ -659,8 +814,8 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
       {/* ══════════ CTA — THE PERFECT FINISH ══════════ */}
       <section style={{ position: "relative", height: "clamp(420px,55vw,700px)", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
-        <img src={img("images/cta_arch.jpg")} alt="architecture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 55%" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent 30%,rgba(10,12,10,0.65) 100%)" }} />
+        <CtaSlider images={CTA_SLIDER_IMAGES} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent 30%,rgba(10,12,10,0.65) 100%)", pointerEvents: "none" }} />
         <div className="max-w-site cta-inner" style={{ position: "relative", zIndex: 2, width: "100%", padding: "0 clamp(24px,5vw,64px) clamp(40px,5vw,64px)", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 24 }}>
           <Fade>
             <h2 style={{ color: "#fff", fontSize: "clamp(22px,3.2vw,46px)", fontWeight: 300, lineHeight: 1.3, margin: 0 }}>
@@ -756,7 +911,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
       {/* ══════════ LET'S BUILD TOGETHER ══════════ */}
       <section style={{ position: "relative", overflow: "hidden" }}>
-        <img src={img("images/dark_cta.jpg")} alt="stone texture" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <img src={img("images/dark_cta.jpg")} alt="stone texture" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(4,6,4,0.28)" }} />
         <div className="max-w-site lets-build-inner" style={{ position: "relative", zIndex: 2, padding: "clamp(72px,9vw,120px) clamp(24px,5vw,64px)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 40 }}>
           <Fade>

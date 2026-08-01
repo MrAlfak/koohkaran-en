@@ -19,7 +19,7 @@ function useFade(threshold = 0.08) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transform: v ? "none" : "translateY(24px)", transition: `opacity .8s ease ${d}s, transform .8s ease ${d}s`, ...style }}>
       {children}
     </div>
   );
@@ -36,11 +36,13 @@ function ArrowLink({ children, onClick }: { children: React.ReactNode; onClick?:
 }
 
 const TABS = ["All", ...PRODUCT_CATEGORIES] as const;
+const PAGE_SIZE = 8;
 
-export default function ProductsPage({ onNavigate }: { onNavigate: (p: Page, productId?: number) => void }) {
+export default function ProductsPage({ onNavigate, initialCategory }: { onNavigate: (p: Page, productId?: number) => void; initialCategory?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeCat, setActiveCat] = useState<string>("All");
+  const [activeCat, setActiveCat] = useState<string>(initialCategory ?? "All");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -48,8 +50,19 @@ export default function ProductsPage({ onNavigate }: { onNavigate: (p: Page, pro
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  useEffect(() => { setActiveCat(initialCategory ?? "All"); }, [initialCategory]);
+
+  useEffect(() => { setPage(1); }, [activeCat]);
+
   const list = PRODUCTS.filter(p => activeCat === "All" || p.cat === activeCat);
   const filterActive = activeCat !== "All";
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const paged = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const goToPage = (n: number) => {
+    setPage(n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
@@ -133,11 +146,11 @@ export default function ProductsPage({ onNavigate }: { onNavigate: (p: Page, pro
       {/* ══ GRID ══ */}
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(60px,8vw,110px)" }}>
         <div className="max-w-site products-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "clamp(20px,2.5vw,40px)" }}>
-          {list.map((p, i) => (
+          {paged.map((p, i) => (
             <Fade key={p.name} d={(i % 4) * 0.07}>
               <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                 <div style={{ overflow: "hidden", marginBottom: 16, aspectRatio: "4/3" }}>
-                  <img src={img(p.image)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                  <img src={img(p.image)} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                     onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
                     onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                 </div>
@@ -148,6 +161,28 @@ export default function ProductsPage({ onNavigate }: { onNavigate: (p: Page, pro
           ))}
         </div>
         {list.length === 0 && <p style={{ maxWidth: 1400, margin: "0 auto", color: "#a8a29e", fontSize: 14 }}>No products in this category yet.</p>}
+        {totalPages > 1 && (
+          <div className="max-w-site" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "clamp(10px,1.4vw,20px)", marginTop: "clamp(40px,5vw,64px)" }}>
+            <button onClick={() => page > 1 && goToPage(page - 1)} disabled={page === 1} aria-label="Previous page"
+              style={{
+                background: "none", border: "1px solid #e7e5e4", width: 36, height: 36, cursor: page === 1 ? "default" : "pointer",
+                color: page === 1 ? "#d6d3d1" : "#1c1917", fontSize: 14, fontFamily: "inherit",
+              }}>←</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => goToPage(n)}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: "2px 4px", fontFamily: "inherit",
+                  fontSize: 14, color: n === page ? "#1c1917" : "#a8a29e",
+                  textDecoration: n === page ? "underline" : "none", textUnderlineOffset: 6,
+                }}>{n}</button>
+            ))}
+            <button onClick={() => page < totalPages && goToPage(page + 1)} disabled={page === totalPages} aria-label="Next page"
+              style={{
+                background: "none", border: "1px solid #e7e5e4", width: 36, height: 36, cursor: page === totalPages ? "default" : "pointer",
+                color: page === totalPages ? "#d6d3d1" : "#1c1917", fontSize: 14, fontFamily: "inherit",
+              }}>→</button>
+          </div>
+        )}
       </section>
 
       {/* ══ FOOTER ══ */}

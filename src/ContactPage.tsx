@@ -147,6 +147,7 @@ export default function ContactPage({ onNavigate }: Props) {
           <img
             src={img("images/contact_img_1.jpg")}
             alt="stone building"
+            decoding="async"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
           />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(255,255,255,0.06) 0%, transparent 40%)" }} />
