@@ -36,7 +36,7 @@ export default function ContactPage({ onNavigate }: Props) {
   };
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "'Urbanist', 'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", minHeight: "100vh" }}>
 
       {/* ── NAV ── */}
       <header style={{

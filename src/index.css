@@ -56,10 +56,13 @@
   html {
     scroll-behavior: auto;
     overflow-x: clip;
+    overflow-y: visible;
   }
   body {
     @apply bg-background text-foreground;
     overflow-x: clip;
+    overflow-y: visible;
+    font-family: 'Urbanist', 'Helvetica Neue', Arial, sans-serif;
   }
 }
 
@@ -231,6 +234,205 @@
 }
 @media (min-width: 1921px) {
   .collections-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ── Our Stones — pinned scroll slider ── */
+.our-stones-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(16px,4vw,48px);
+}
+.our-stones-word {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(44px,9vw,150px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #1c1917;
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.our-stones-word--first { align-self: flex-start; margin-top: clamp(16px,9vh,100px); }
+.our-stones-word--last  { align-self: flex-end;   margin-bottom: clamp(16px,9vh,100px); }
+.our-stones-media {
+  position: relative;
+  overflow: hidden;
+  width: clamp(220px,26vw,420px);
+  aspect-ratio: 4/5;
+  flex-shrink: 0;
+}
+@media (max-width: 680px) {
+  .our-stones-row { flex-direction: column; gap: 18px; }
+  .our-stones-word { font-size: clamp(32px,11vw,56px); }
+  .our-stones-word--first, .our-stones-word--last { align-self: center; margin: 0; }
+  .our-stones-media { width: min(68vw,320px); aspect-ratio: 4/5; }
+}
+
+/* ── Stone spiral — photos spiral inward and converge into a stack ── */
+.stone-spiral {
+  position: relative;
+  width: clamp(300px,42vw,620px);
+  aspect-ratio: 3/2;
+}
+.stone-spiral__wrap {
+  position: absolute;
+  inset: 0;
+  box-shadow: 0 25px 55px -20px rgba(20,16,12,0.4);
+  will-change: transform, opacity;
+}
+.stone-spiral__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.stone-spiral__text {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 24px;
+  pointer-events: none;
+}
+.stone-spiral__eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #a8a29e;
+  margin: 0 0 18px;
+}
+.stone-spiral__title {
+  font-size: clamp(28px,4vw,52px);
+  font-weight: 300;
+  line-height: 1.15;
+  color: #1c1917;
+  margin: 0 0 20px;
+  max-width: 720px;
+}
+.stone-spiral__desc {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #57534e;
+  max-width: 480px;
+  margin: 0;
+}
+
+/* ── Collection card — hover reveal ── */
+.collection-card { cursor: pointer; }
+.collection-card__media { position: relative; overflow: hidden; aspect-ratio: 16/9; }
+.collection-card__img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .8s cubic-bezier(0.16,1,0.3,1);
+}
+.collection-card__gradient {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 45%, rgba(12,10,8,0.4) 100%);
+  opacity: 0;
+  transition: opacity .6s ease;
+}
+.collection-card__explore {
+  position: absolute; left: clamp(16px,2vw,24px); bottom: clamp(16px,2vw,22px);
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(3px);
+  color: #fff; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity .5s cubic-bezier(0.16,1,0.3,1), transform .5s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+}
+.collection-card__name {
+  font-size: 16px; font-weight: 400; margin: 0 0 4px;
+  transition: font-size .45s cubic-bezier(0.16,1,0.3,1);
+}
+.collection-card__count {
+  font-size: 12px; color: #a8a29e; margin: 0;
+  transition: opacity .4s ease;
+}
+.collection-card:hover .collection-card__img,
+.collection-card:focus-visible .collection-card__img {
+  transform: scale(1.1);
+}
+.collection-card:hover .collection-card__gradient,
+.collection-card:focus-visible .collection-card__gradient {
+  opacity: 1;
+}
+.collection-card:hover .collection-card__explore,
+.collection-card:focus-visible .collection-card__explore {
+  opacity: 1;
+  transform: translateY(0);
+}
+.collection-card:hover .collection-card__name,
+.collection-card:focus-visible .collection-card__name {
+  font-size: 20px;
+}
+.collection-card:hover .collection-card__count,
+.collection-card:focus-visible .collection-card__count {
+  opacity: 0.4;
+}
+
+/* ── Selected Products list ── */
+.selected-list {
+  border-top: 1px solid #e7e5e4;
+}
+.selected-list__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px,2.5vw,32px);
+  padding: clamp(20px,3vw,32px) 0;
+  border-bottom: 1px solid #e7e5e4;
+  cursor: pointer;
+}
+.selected-list__name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(19px,2.3vw,29px);
+  font-weight: 400;
+  color: #1c1917;
+  margin: 0;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.selected-list__size {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: #57534e;
+  margin: 0;
+  flex: 0 0 auto;
+  width: 110px;
+}
+.selected-list__colors {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #57534e;
+  margin: 0;
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+.selected-list__arrow {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: #1c1917;
+  transition: transform .3s cubic-bezier(0.16,1,0.3,1);
+}
+.selected-list__row:hover .selected-list__arrow {
+  transform: translate(3px,-3px);
+}
+@media (max-width: 700px) {
+  .selected-list__row { row-gap: 6px; }
+  .selected-list__name { flex-basis: 100%; }
+  .selected-list__colors { text-align: right; margin-left: auto; }
 }
 
 /* ── Products grid ── */

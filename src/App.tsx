@@ -270,9 +270,9 @@ const CATEGORY_COVER_PRODUCT_ID: Partial<Record<string, number>> = {
 };
 // fallback cover photo for categories with no product (or no working photo) yet
 const CATEGORY_FALLBACK_IMG: Record<string, string> = {
-  Onyx: "images/onyx.jpg",
-  Limestone: "images/limestone.jpg",
-  Basalt: "images/granite.jpg", // both Basalt products still lack an uploaded photo
+  Onyx: "images/onyx.webp",
+  Limestone: "images/limestone.webp",
+  Basalt: "images/basalt.webp",
 };
 
 const COLLECTIONS = PRODUCT_CATEGORIES.map(cat => {
@@ -286,10 +286,177 @@ const COLLECTIONS = PRODUCT_CATEGORIES.map(cat => {
   };
 });
 
-const FEATURED_PRODUCT_IDS = [20, 16, 26];
-const FEATURED_PRODUCTS = FEATURED_PRODUCT_IDS
+const SELECTED_PRODUCT_IDS = [16, 36, 46, 35, 29, 43, 18, 12];
+const SELECTED_PRODUCTS = SELECTED_PRODUCT_IDS
   .map(id => ALL_PRODUCTS.find(p => p.id === id))
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+// one representative photo per stone category, reusing the already-verified collection covers
+const OUR_STONES_IMAGES = COLLECTIONS.map(c => c.img);
+
+/* ─── "Our Stones" — pinned section whose center image slides through on scroll ─── */
+function OurStonesSlider({ images }: { images: string[] }) {
+  const trackRef = useRef<HTMLElement>(null);
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = trackRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, Math.max(0, -rect.top / scrollable)) : 0;
+      setActive(Math.min(images.length - 1, Math.floor(progress * images.length)));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [images.length]);
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  return (
+    <section ref={trackRef} style={{ position: "relative", height: `${images.length * 60}vh` }}>
+      <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", display: "flex", alignItems: "center" }}>
+        <div className="our-stones-row max-w-site" style={{ margin: "0 auto", width: "100%", padding: "0 clamp(24px,5vw,64px)" }}>
+          <h2 className="our-stones-word our-stones-word--first">Our</h2>
+          <div className="our-stones-media">
+            {images.map((src, i) => (
+              <img key={src} src={img(src)} alt="" loading="lazy" decoding="async" style={{
+                position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+                transform: `translateX(${(i - active) * 100}%)`,
+                transition: reduceMotion ? "none" : "transform 1s cubic-bezier(0.65,0,0.35,1)",
+              }} />
+            ))}
+          </div>
+          <h2 className="our-stones-word our-stones-word--last">Stones</h2>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const STONE_SPIRAL_IMAGES = [
+  "images/about_page_img_4.jpg",
+  "images/stones/black-forest.webp",
+  "images/about_page_img_2.jpg",
+  "images/stones/alpinus-rock.webp",
+  "images/about_stone.jpg",
+];
+
+const STONE_SPIRAL_EYEBROW = "NATURAL STONE";
+const STONE_SPIRAL_TITLE = "Beauty Carved by Nature";
+const STONE_SPIRAL_DESC = "Discover premium marble, granite, onyx, travertine, and quartzite—carefully sourced and selected to elevate architecture with lasting beauty.";
+
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+// each image flies in from a different edge of the screen (top / right / bottom / left / top-left)
+const STONE_SPIRAL_DIRS = [
+  { dx:  0,    dy: -1,    rot: -260, settleRot:  3 },
+  { dx:  1,    dy:  0,    rot:  220, settleRot: -4 },
+  { dx:  0,    dy:  1,    rot: -230, settleRot:  2 },
+  { dx: -1,    dy:  0,    rot:  250, settleRot: -3 },
+  { dx: -0.55, dy: -0.75, rot: -210, settleRot:  4 },
+];
+
+/* ─── pinned section: photos fly in from off-screen, spin, and converge into a stack, then release to the next section ─── */
+function StoneSpiral({ images }: { images: string[] }) {
+  const trackRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [stageSize, setStageSize] = useState(420);
+
+  useEffect(() => {
+    const measure = () => { if (stageRef.current) setStageSize(stageRef.current.offsetWidth); };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // smoothly lerp toward the scroll-derived target every frame, instead of snapping
+  // straight to it — this is what makes the spin feel fluid even on a choppy wheel/trackpad
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0;
+    let running = false;
+    let current = 0;
+
+    const target = () => {
+      const rect = el.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+      return scrollable > 0 ? Math.min(1, Math.max(0, -rect.top / scrollable)) : 0;
+    };
+
+    const tick = () => {
+      const t = target();
+      current += (t - current) * (reduce ? 1 : 0.065);
+      if (Math.abs(t - current) < 0.0006) current = t;
+      setProgress(current);
+      if (running) raf = requestAnimationFrame(tick);
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      } else if (!entry.isIntersecting && running) {
+        running = false;
+        cancelAnimationFrame(raf);
+        setProgress(target());
+      }
+    }, { rootMargin: "50% 0px 50% 0px" });
+    io.observe(el);
+
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  const reach = stageSize / 2 + 80;
+  const textOpacity = reduceMotion ? 0 : Math.max(0, 1 - progress / 0.4);
+
+  return (
+    <section ref={trackRef} style={{ position: "relative", height: "280vh", background: "#fff" }}>
+      <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" }}>
+        <div className="stone-spiral__text" style={{ opacity: textOpacity }}>
+          <p className="stone-spiral__eyebrow">{STONE_SPIRAL_EYEBROW}</p>
+          <h2 className="stone-spiral__title">{STONE_SPIRAL_TITLE}</h2>
+          <p className="stone-spiral__desc">{STONE_SPIRAL_DESC}</p>
+        </div>
+        <div ref={stageRef} className="stone-spiral">
+          {images.map((src, i) => {
+            const dir = STONE_SPIRAL_DIRS[i % STONE_SPIRAL_DIRS.length];
+            const local = Math.min(1, Math.max(0, (progress - i * 0.05) / (1 - i * 0.05)));
+            const e = reduceMotion ? 1 : easeOutCubic(local);
+            const startX = dir.dx * (vw * 0.65 + reach);
+            const startY = dir.dy * (vh * 0.65 + reach);
+            const x = reduceMotion ? 0 : startX * (1 - e);
+            const y = reduceMotion ? 0 : startY * (1 - e);
+            const rot = reduceMotion ? dir.settleRot : dir.rot + (dir.settleRot - dir.rot) * e;
+            return (
+              <div key={src} className="stone-spiral__wrap" style={{
+                transform: `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg)`,
+                opacity: Math.min(1, 0.15 + e * 1.3),
+                zIndex: i + 1,
+              }}>
+                <img src={img(src)} alt="" loading="lazy" decoding="async" className="stone-spiral__img" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 const STATS = [
   { val: "10+",  label: "Years of Crafted Experience" },
@@ -306,8 +473,6 @@ const FAQS = [
   { title: "What is the typical lead time?", body: "Lead time depends on stone availability and destination. In-stock slabs can often ship within days; custom sourcing typically takes 2–6 weeks. We confirm timelines before you commit." },
   { title: "Do you work with architects and contractors?", body: "Yes. We partner with design studios, architects, and contractors on residential and commercial projects — from material specification through delivery coordination." },
 ];
-
-const TABS = ["All", "Custom Homes", "Passive House", "Institutional"];
 
 /* ─── SVG logo (exact from SVG file) ─── */
 function KLogo({ size = 44 }: { size?: number }) {
@@ -484,8 +649,7 @@ function PageTransition() {
     <BackgroundMusicProvider>
       <div style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(14px)",
-        transition: "opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1)",
+        transition: "opacity 0.6s cubic-bezier(0.22,1,0.36,1)",
         minHeight: "100vh",
       }}>
         {currentPage === "home"    && <HomePage    onNavigate={navigate} />}
@@ -520,7 +684,6 @@ const PLX_CFG = [
 
 function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?: string) => void }) {
   const [scrolled, setScrolled] = useState(false);
-  const [openTab, setOpenTab] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const sketchRef = useSketchHoverDraw();
@@ -577,7 +740,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Urbanist', 'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "clip", overflowY: "visible" }}>
 
       {/* ══════════ MOBILE MENU OVERLAY ══════════ */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
@@ -656,7 +819,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
         <div ref={el => { plxRefs.current[1] = el; }} className="hero-plx"
           style={{ zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <h1 style={{
-            margin: 0, color: "#fff", fontWeight: 300,
+            margin: 0, color: "#fff", fontWeight: 600,
             fontSize: "clamp(40px,7.5vw,108px)",
             letterSpacing: "clamp(0.1em,2vw,0.32em)",
             textTransform: "uppercase", whiteSpace: "nowrap",
@@ -750,15 +913,26 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
           <div className="collections-grid">
             {COLLECTIONS.map((c, i) => (
               <Fade key={c.name} d={i * 0.06}>
-                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("products", undefined, c.name)}>
-                  <div style={{ overflow: "hidden", aspectRatio: "16/9" }}>
-                    <img src={img(c.img)} alt={c.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
-                      onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
-                      onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
+                <div
+                  className="collection-card"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onNavigate("products", undefined, c.name)}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onNavigate("products", undefined, c.name); } }}
+                >
+                  <div className="collection-card__media">
+                    <img className="collection-card__img" src={img(c.img)} alt={c.name} loading="lazy" decoding="async" />
+                    <div className="collection-card__gradient" />
+                    <span className="collection-card__explore">
+                      Explore
+                      <svg width="16" height="9" viewBox="0 0 18 10" fill="none" stroke="#fff" strokeWidth="1.3">
+                        <line x1="0" y1="5" x2="16" y2="5" /><polyline points="11,1 16,5 11,9" />
+                      </svg>
+                    </span>
                   </div>
                   <div style={{ paddingTop: 14 }}>
-                    <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 4px" }}>{c.name}</p>
-                    <p style={{ fontSize: 12, color: "#a8a29e", margin: 0 }}>{c.count} Products</p>
+                    <p className="collection-card__name">{c.name}</p>
+                    <p className="collection-card__count">{c.count} Products</p>
                   </div>
                 </div>
               </Fade>
@@ -781,46 +955,40 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
         </div>
       </section>
 
-      {/* ══════════ SELECTED PRODUCT ══════════ */}
-      <section style={{ padding: "clamp(60px,7vw,96px) clamp(24px,5vw,64px)" }}>
+      {/* ══════════ STONE SPIRAL ══════════ */}
+      <StoneSpiral images={STONE_SPIRAL_IMAGES} />
+
+      {/* ══════════ SELECTED PRODUCTS ══════════ */}
+      <section style={{ padding: "clamp(60px,7vw,96px) clamp(24px,5vw,64px)", background: "#fff" }}>
         <div className="max-w-site">
           <Fade>
             <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", marginBottom: 8 }}>SLAB MARKET</p>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
-              <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 300, margin: 0 }}>Selected Product</h2>
+              <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 300, margin: 0 }}>Selected Products</h2>
               <ArrowLink href="#" onClick={() => onNavigate("products")}>All products</ArrowLink>
             </div>
-            {/* tabs */}
-            <div className="tabs-row" style={{ display: "flex", gap: 32, marginBottom: 36, borderBottom: "1px solid #f0ede8", flexWrap: "wrap" }}>
-              {TABS.map((t, i) => (
-                <button key={t} onClick={() => setOpenTab(i)} style={{
-                  background: "none", border: "none", fontSize: 14, cursor: "pointer", paddingBottom: 12,
-                  color: openTab === i ? "#1c1917" : "#a8a29e",
-                  borderBottom: `2px solid ${openTab === i ? "#1c1917" : "transparent"}`,
-                  marginBottom: -1, transition: "all .2s",
-                }}>{t}</button>
-              ))}
-            </div>
           </Fade>
-          <div className="products-grid">
-            {FEATURED_PRODUCTS.map((p, i) => (
-              <Fade key={p.id} d={i * 0.1}>
-                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
-                  <div style={{ overflow: "hidden", aspectRatio: "4/5" }}>
-                    <img src={img(p.image)} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
-                      onMouseOver={e => (e.currentTarget.style.transform = "scale(1.04)")}
-                      onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
-                  </div>
-                  <div style={{ paddingTop: 14 }}>
-                    <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 5px" }}>{p.name}</p>
-                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.cat.toUpperCase()}&nbsp;&nbsp;·&nbsp;&nbsp;{p.size}</p>
-                  </div>
+          <div className="selected-list">
+            {SELECTED_PRODUCTS.map((p, i) => (
+              <Fade key={p.id} d={i * 0.04}>
+                <div className="selected-list__row" onClick={() => onNavigate("product", p.id)}>
+                  <h3 className="selected-list__name">{p.name}</h3>
+                  <p className="selected-list__size">{p.size} CM</p>
+                  <p className="selected-list__colors">{p.colors}</p>
+                  <span className="selected-list__arrow" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3">
+                      <line x1="3" y1="15" x2="15" y2="3" /><polyline points="6,3 15,3 15,12" />
+                    </svg>
+                  </span>
                 </div>
               </Fade>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ══════════ OUR STONES — scroll-linked slider ══════════ */}
+      <OurStonesSlider images={OUR_STONES_IMAGES} />
 
       {/* ══════════ CTA — THE PERFECT FINISH ══════════ */}
       <section style={{ position: "relative", height: "clamp(420px,55vw,700px)", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>

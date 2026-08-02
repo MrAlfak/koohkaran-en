@@ -52,7 +52,7 @@ export default function EventDetailPage({ onNavigate, eventId }: { onNavigate: (
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Urbanist', 'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
 
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
         {(["Home", "About", "Products", "Events", "Journal"] as const).map(n => (

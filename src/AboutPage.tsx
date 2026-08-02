@@ -75,7 +75,7 @@ export default function AboutPage({ onNavigate }: { onNavigate: (p: Page) => voi
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Urbanist', 'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
 
       {/* ══ NAV ══ */}
       <header style={{

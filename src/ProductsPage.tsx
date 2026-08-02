@@ -65,7 +65,7 @@ export default function ProductsPage({ onNavigate, initialCategory }: { onNaviga
   };
 
   return (
-    <div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Urbanist', 'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
 
       {/* ══ MOBILE MENU ══ */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
