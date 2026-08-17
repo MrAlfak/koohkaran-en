@@ -29,29 +29,26 @@ function useFade(threshold = 0.08) {
 /* ─── icon wipe-draw ─── */
 function WipeDraw({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const triggered = useRef(false);
   useEffect(() => {
     const el = ref.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     el.style.clipPath = "inset(0 100% 0 0)";
-    function trigger() {
-      if (triggered.current) return;
-      triggered.current = true;
-      setTimeout(() => {
-        if (!el) return;
-        el.style.transition = `clip-path 1.4s cubic-bezier(.4,0,.2,1)`;
-        el.style.clipPath = "inset(0 0% 0 0)";
-      }, delay);
-    }
+    let timer: ReturnType<typeof setTimeout>;
     const o = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { trigger(); o.disconnect(); }
+      clearTimeout(timer);
+      if (e.isIntersecting) {
+        timer = setTimeout(() => {
+          el.style.transition = `clip-path 1.4s cubic-bezier(.4,0,.2,1)`;
+          el.style.clipPath = "inset(0 0% 0 0)";
+        }, delay);
+      } else {
+        el.style.transition = "none";
+        el.style.clipPath = "inset(0 100% 0 0)";
+      }
     }, { threshold: 0 });
     o.observe(el);
-    // fallback: if already in viewport when effect runs
-    const r = el.getBoundingClientRect();
-    if (r.top < window.innerHeight && r.bottom > 0) trigger();
-    return () => o.disconnect();
-  }, []);
+    return () => { o.disconnect(); clearTimeout(timer); };
+  }, [delay]);
   return <div ref={ref}>{children}</div>;
 }
 
@@ -744,6 +741,9 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
 
       {/* ══════════ MOBILE MENU OVERLAY ══════════ */}
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+        <button className="mobile-menu-close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+          <span /><span />
+        </button>
         {(["Home","About","Products","Events","Journal"] as const).map(n => (
           <button key={n} className="mobile-menu-link" onClick={() => {
             setMenuOpen(false);
@@ -764,11 +764,12 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "clamp(12px,2vw,20px) clamp(24px,5vw,64px)",
-        background: scrolled || menuOpen ? "rgba(255,255,255,0.98)" : "transparent",
-        backdropFilter: scrolled || menuOpen ? "blur(10px)" : "none",
-        WebkitBackdropFilter: scrolled || menuOpen ? "blur(10px)" : "none",
-        transition: "background .35s ease, box-shadow .35s ease",
-        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06)" : "none",
+        background: scrolled || menuOpen ? "rgba(255,255,255,0.35)" : "transparent",
+        backdropFilter: scrolled || menuOpen ? "blur(16px) saturate(180%)" : "none",
+        WebkitBackdropFilter: scrolled || menuOpen ? "blur(16px) saturate(180%)" : "none",
+        borderBottom: scrolled || menuOpen ? "1px solid rgba(255,255,255,0.35)" : "1px solid transparent",
+        transition: "background .35s ease, box-shadow .35s ease, border-color .35s ease",
+        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.06)" : "none",
       }}>
         <button onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, zIndex: 201 }}>
           <KLogo size={42} />
