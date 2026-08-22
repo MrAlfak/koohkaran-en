@@ -43,9 +43,11 @@ export default function ContactPage({ onNavigate }: Props) {
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "18px clamp(24px,5vw,64px)",
-        background: "rgba(255,255,255,0.97)",
-        backdropFilter: "blur(14px)",
-        boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
+        background: "rgba(255,255,255,0.35)",
+        backdropFilter: "blur(16px) saturate(180%)",
+        WebkitBackdropFilter: "blur(16px) saturate(180%)",
+        borderBottom: "1px solid rgba(255,255,255,0.35)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
       }}>
         <button onClick={() => onNavigate("home")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
           <img src={img("images/logo.png")} alt="Koohkaran" style={{ width: 42, height: 42 }} />
@@ -130,8 +132,6 @@ export default function ContactPage({ onNavigate }: Props) {
           <div style={{ marginTop: 56, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px" }}>
             {[
               { label: "Email", val: "info@koohkaran.com" },
-              { label: "Phone", val: "09173090000" },
-              { label: "Address", val: "Shatti Al Qurum, Block 228\nMuscat, Oman" },
               { label: "Hours", val: "Mon – Fri\n8:00 AM – 5:00 PM" },
             ].map(({ label, val }) => (
               <div key={label}>
@@ -158,9 +158,7 @@ export default function ContactPage({ onNavigate }: Props) {
       <footer style={{ background: "#fff", borderTop: "1px solid #f0ede8" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", padding: "clamp(40px,5vw,64px) clamp(24px,5vw,64px) clamp(20px,3vw,32px)", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: "clamp(24px,4vw,48px)", alignItems: "start" }}>
           <div>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 8px" }}>info@koohkaran.com</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 8px" }}>09173090000</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: 0, lineHeight: 1.6 }}>Shatti Al Qurum, Block 228<br />Muscat, Oman</p>
+            <p style={{ fontSize: 13, color: "#57534e", margin: 0 }}>info@koohkaran.com</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <img src={img("images/logo.png")} alt="logo" style={{ width: 52, height: 52 }} />

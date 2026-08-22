@@ -90,8 +90,12 @@ export default function EventsPage({ onNavigate }: { onNavigate: (p: Page, id?: 
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "clamp(12px,2vw,20px) clamp(24px,5vw,64px)",
-        background: "rgba(255,255,255,0.97)", backdropFilter: "blur(14px)",
-        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06)" : "none", transition: "box-shadow .4s",
+        background: "rgba(255,255,255,0.35)",
+        backdropFilter: "blur(16px) saturate(180%)",
+        WebkitBackdropFilter: "blur(16px) saturate(180%)",
+        borderBottom: "1px solid rgba(255,255,255,0.35)",
+        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.06)" : "none",
+        transition: "background .35s ease, box-shadow .35s ease, border-color .35s ease",
       }}>
         <button onClick={() => { setMenuOpen(false); onNavigate("home"); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, zIndex: 201 }}>
           <img src={img("images/logo.png")} alt="Koohkaran" style={{ width: 42, height: 42 }} />
@@ -155,9 +159,7 @@ export default function EventsPage({ onNavigate }: { onNavigate: (p: Page, id?: 
       <footer style={{ background: "#fff", borderTop: "1px solid #f0ede8" }}>
         <div className="footer-grid" style={{ maxWidth: 1400, margin: "0 auto", padding: "clamp(48px,6vw,80px) clamp(24px,5vw,64px) clamp(24px,3vw,40px)" }}>
           <div>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 10px" }}>info@koohkaran.com</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 10px" }}>09173090000</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 32px", lineHeight: 1.6 }}>Shatti Al Qurum, Block 228<br />Muscat, Oman</p>
+            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 32px" }}>info@koohkaran.com</p>
             <ArrowLink onClick={() => onNavigate("contact")}>Contact us</ArrowLink>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>

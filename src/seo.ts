@@ -58,7 +58,7 @@ const PAGE_SEO: Record<SeoPage, { title: string; description: string }> = {
   contact: {
     title: `Contact Us | ${SITE_NAME}`,
     description:
-      "Get in touch with Koohkaran for stone consultation, slab selection, and project inquiries. Call 09173090000 or email info@koohkaran.com.",
+      "Get in touch with Koohkaran for stone consultation, slab selection, and project inquiries. Email info@koohkaran.com.",
   },
 };
 

@@ -776,3 +776,88 @@ html.is-scrolling .hero-plx {
   border-radius: 6px;
   transition: filter 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* ── Product hero: light sweep → white wash with the name cut through ── */
+.phero {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0a0c0e;
+}
+.phero__base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The white no longer travels, so it needs no carrier or wipe mask: it is a
+   plain full-frame layer that rises in place, with the name cut out of it. */
+.phero__wash {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* the light pass, drawn by stoneLight.ts; fades in once its texture is up so
+   the <img> beneath covers the gap and there is never an empty frame */
+.phero__gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.phero__lineart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 3;
+  pointer-events: none;
+}
+.phero__line {
+  fill: none;
+  /* drawn over the shaded slab, so it has to be the light colour of the two */
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.phero__svg {
+  display: block;
+}
+.phero__lineart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 3;
+  pointer-events: none;
+}
+.phero__line {
+  fill: none;
+  /* drawn over the shaded slab, so it has to be the light colour of the two */
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.phero__cut {
+  font-family: 'Urbanist', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+

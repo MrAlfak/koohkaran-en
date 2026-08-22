@@ -12,7 +12,7 @@ import SocialFab from "./components/SocialFab";
 import { BackgroundMusicProvider } from "./components/BackgroundMusicProvider";
 import NavHeaderActions from "./components/NavHeaderActions";
 import { updatePageSeo, SITE_NAME } from "./seo";
-import { getProduct, PRODUCTS as ALL_PRODUCTS, PRODUCT_CATEGORIES } from "./products";
+import { getProduct, getProductBySlug, productSlug, PRODUCTS as ALL_PRODUCTS, PRODUCT_CATEGORIES } from "./products";
 import { getEvent } from "./events";
 
 /* ─── fade-in hook ─── */
@@ -535,7 +535,8 @@ type Page = "home" | "contact" | "about" | "journal" | "article" | "products" | 
 
 /* URL <-> page mapping, so the address bar reflects navigation */
 function pathFor(page: Page, id?: number): string {
-  if (page === "product") return `/products/${id ?? 0}`;
+  // products are addressed by name, so the URL reads /products/persian-bianco
+  if (page === "product") return `/products/${productSlug(id ?? 0)}`;
   if (page === "event") return `/events/${id ?? 0}`;
   const PATHS: Record<Exclude<Page, "product" | "event">, string> = {
     home: "/",
@@ -555,7 +556,13 @@ function parseLocation(pathname: string): { page: Page; id: number } {
   if (segs[0] === "contact") return { page: "contact", id: 0 };
   if (segs[0] === "about") return { page: "about", id: 0 };
   if (segs[0] === "journal") return { page: segs[1] === "article" ? "article" : "journal", id: 0 };
-  if (segs[0] === "products") return segs[1] ? { page: "product", id: Number(segs[1]) || 0 } : { page: "products", id: 0 };
+  if (segs[0] === "products") {
+    if (!segs[1]) return { page: "products", id: 0 };
+    // slugs are the canonical form, but numeric ids are still accepted so links
+    // shared before the change keep resolving; the address bar is rewritten on arrival
+    const bySlug = getProductBySlug(decodeURIComponent(segs[1]));
+    return { page: "product", id: bySlug ? bySlug.id : Number(segs[1]) || 0 };
+  }
   if (segs[0] === "events") return segs[1] ? { page: "event", id: Number(segs[1]) || 0 } : { page: "events", id: 0 };
   return { page: "home", id: 0 };
 }
@@ -607,6 +614,9 @@ function PageTransition() {
   useEffect(() => {
     if (currentPage === "product") {
       const p = getProduct(productId);
+      // an id-based or misspelled URL settles on the slug before the canonical tag is written
+      const canonical = pathFor("product", productId);
+      if (window.location.pathname !== canonical) window.history.replaceState({}, "", canonical);
       updatePageSeo("product", {
         title: `${p.name} | ${p.cat} | ${SITE_NAME}`,
         description: `${p.name} — ${p.cat} natural stone slab (${p.size}). Finish: ${p.finish}. Origin: ${p.origin}. Product code: ${p.code}.`,
@@ -1110,9 +1120,7 @@ function HomePage({ onNavigate }: { onNavigate: (p: Page, id?: number, category?
         <div className="max-w-site footer-grid" style={{ padding: "clamp(48px,6vw,80px) clamp(24px,5vw,64px) clamp(24px,3vw,40px)" }}>
           {/* Contact */}
           <div>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 10px" }}>info@koohkaran.com</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 10px" }}>09173090000</p>
-            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 32px", lineHeight: 1.6 }}>Shatti Al Qurum, Block 228<br />Muscat, Oman</p>
+            <p style={{ fontSize: 13, color: "#57534e", margin: "0 0 32px" }}>info@koohkaran.com</p>
             <ArrowLink>Contact us</ArrowLink>
           </div>
           {/* Logo center */}

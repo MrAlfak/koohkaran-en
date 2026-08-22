@@ -17,7 +17,13 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Loaded without blocking the first paint: as a stylesheet this held the
+         whole page back until it arrived. The font itself is display=swap, and
+         anything that measures text waits on document.fonts.ready, so the only
+         visible effect is that the page paints immediately. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@200;300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" media="print" onload="this.media='all'; this.onload=null;" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@200;300;400;500;600;700&display=swap" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@200;300;400;500;600;700&display=swap" /></noscript>
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Koohkaran" />
@@ -42,13 +48,6 @@
       "logo": "https://koohkaranstone.com/images/logo.png",
       "description": "Premium natural stone slab supplier for luxury architecture and interior design.",
       "email": "info@koohkaran.com",
-      "telephone": "+989173090000",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Shatti Al Qurum, Block 228",
-        "addressLocality": "Muscat",
-        "addressCountry": "OM"
-      },
       "sameAs": [
         "https://instagram.com/koohkaran",
         "https://t.me/koohkaran"
@@ -60,7 +59,7 @@
     <noscript>
       <h1>Koohkaran — Premium Natural Stone Slabs</h1>
       <p>Curated granite, marble, onyx, travertine, and quartzite slabs for luxury projects.</p>
-      <p>Contact: info@koohkaran.com · 09173090000</p>
+      <p>Contact: info@koohkaran.com</p>
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

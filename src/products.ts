@@ -888,3 +888,24 @@ export const PRODUCTS: Product[] = [
 export function getProduct(id: number): Product {
   return PRODUCTS.find(p => p.id === id) ?? PRODUCTS[0];
 }
+
+/*
+  URL slug for a product. Detail pages are addressed by name rather than id, so
+  the slug has to survive whatever punctuation a stone name carries — "&", "/",
+  and bracketed qualifiers all collapse to single hyphens.
+*/
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function productSlug(id: number): string {
+  return slugify(getProduct(id).name);
+}
+
+export function getProductBySlug(slug: string): Product | undefined {
+  const s = slug.toLowerCase();
+  return PRODUCTS.find(p => slugify(p.name) === s);
+}
